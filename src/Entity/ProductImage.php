@@ -4,11 +4,7 @@ namespace App\Entity;
 
 use App\Repository\ProductImageRepository;
 use Doctrine\ORM\Mapping as ORM;
-use Doctrine\ORM\Mapping\Column;
-use Doctrine\ORM\Mapping\CustomIdGenerator;
-use Doctrine\ORM\Mapping\GeneratedValue;
-use Symfony\Bridge\Doctrine\Types\UuidType;
-use Symfony\Component\Uid\Uuid;
+use Symfony\Component\Serializer\Annotation\Groups;
 
 #[ORM\Entity(repositoryClass: ProductImageRepository::class)]
 class ProductImage
@@ -19,6 +15,7 @@ class ProductImage
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
+    #[Groups(['show_product', 'list_product'])]
     private ?string $name = null;
 
     #[ORM\ManyToOne(inversedBy: 'productImages')]

@@ -10,7 +10,9 @@ use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\CustomIdGenerator;
 use Doctrine\ORM\Mapping\GeneratedValue;
 use Symfony\Bridge\Doctrine\Types\UuidType;
+use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Uid\Uuid;
+use Symfony\Component\Validator\Constraints\Count;
 
 #[ORM\Entity(repositoryClass: ProductRepository::class)]
 class Product
@@ -18,16 +20,21 @@ class Product
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
+    #[Groups(['show_product', 'list_product'])]
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
+    #[Groups(['show_product', 'list_product'])]
     private ?string $name = null;
 
     #[ORM\ManyToOne(cascade: ['persist'], inversedBy: 'products')]
     #[ORM\JoinColumn(nullable: false)]
+    #[Groups(['show_product', 'list_product'])]
     private ?ProductCategory $productCategory = null;
 
-    #[ORM\OneToMany(mappedBy: 'product', targetEntity: ProductImage::class)]
+    #[ORM\OneToMany(mappedBy: 'product', targetEntity: ProductImage::class, cascade: ['persist'])]
+    #[Count(max: 3, maxMessage: 'Product can have at most {{limit}} images.')]
+    #[Groups(['show_product', 'list_product'])]
     private Collection $productImages;
 
     public function __construct()
