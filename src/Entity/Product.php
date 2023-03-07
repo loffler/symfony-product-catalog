@@ -5,14 +5,9 @@ namespace App\Entity;
 use App\Repository\ProductRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
+use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
-use Doctrine\ORM\Mapping\Column;
-use Doctrine\ORM\Mapping\CustomIdGenerator;
-use Doctrine\ORM\Mapping\GeneratedValue;
-use Symfony\Bridge\Doctrine\Types\UuidType;
 use Symfony\Component\Serializer\Annotation\Groups;
-use Symfony\Component\Uid\Uuid;
-use Symfony\Component\Validator\Constraints\Count;
 
 #[ORM\Entity(repositoryClass: ProductRepository::class)]
 class Product
@@ -33,9 +28,12 @@ class Product
     private ?ProductCategory $productCategory = null;
 
     #[ORM\OneToMany(mappedBy: 'product', targetEntity: ProductImage::class, cascade: ['persist'])]
-    #[Count(max: 3, maxMessage: 'Product can have at most {{limit}} images.')]
     #[Groups(['show_product', 'list_product'])]
     private Collection $productImages;
+
+    #[ORM\Column(type: Types::TEXT, nullable: true)]
+    #[Groups(['show_product'])]
+    private ?string $description = null;
 
     public function __construct()
     {
@@ -97,6 +95,18 @@ class Product
                 $productImage->setProduct(null);
             }
         }
+
+        return $this;
+    }
+
+    public function getDescription(): ?string
+    {
+        return $this->description;
+    }
+
+    public function setDescription(?string $description): self
+    {
+        $this->description = $description;
 
         return $this;
     }
