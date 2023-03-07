@@ -6,6 +6,7 @@ use App\Entity\Product;
 use App\Repository\ProductRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\Persistence\ManagerRegistry;
+use FOS\ElasticaBundle\Finder\PaginatedFinderInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -18,9 +19,11 @@ use Symfony\Component\Serializer\SerializerInterface;
 class ProductController extends AbstractController
 {
     public function __construct(
+        private PaginatedFinderInterface $finder,
         private EntityManagerInterface $entityManager,
         private ProductRepository $productRepository,
-        private SerializerInterface $serializer) {}
+        private SerializerInterface $serializer,
+    ) {}
 
     #[Route('', name: 'index', methods: ['GET'])]
     public function index(): Response
@@ -32,6 +35,18 @@ class ProductController extends AbstractController
             ->toArray();
 
         return $this->json($products, context: $context);
+    }
+
+    #[Route('/search', name: 'search', methods: ['GET'])]
+    public function search(Request $request): Response
+    {
+        $search = $request->get('fulltext');
+        $result = $this->finder->find($search);
+
+        $context = (new ObjectNormalizerContextBuilder())
+            ->withGroups('show_product')
+            ->toArray();
+        return $this->json($result, context: $context);
     }
 
     #[Route('/{id}', name: 'by_id', methods: ['GET'])]
