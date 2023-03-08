@@ -1,0 +1,4 @@
+@startuml
+Product "n" --o "1" ProductCategory
+Product "1" o-- "0..3" ProductImage
+@enduml

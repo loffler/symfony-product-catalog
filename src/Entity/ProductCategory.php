@@ -14,7 +14,7 @@ class ProductCategory
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups(['show_category'])]
+    #[Groups(['show_product', 'list_product', 'show_category'])]
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]

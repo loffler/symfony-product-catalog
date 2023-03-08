@@ -34,6 +34,9 @@ class ProductController extends AbstractController
     #[Route('', name: 'index', methods: ['GET'])]
     public function index(): Response
     {
+        // Various sorting, filtering and pagination could be done in this endpoint.
+        // But I would prefer using API Platform if it needed to be done.
+
         $products = $this->cache->get(self::PRODUCT_INDEX_CACHE_KEY, function (ItemInterface $item) {
             $item->expiresAfter(self::PRODUCT_CACHE_TTL);
             return $this->productRepository
