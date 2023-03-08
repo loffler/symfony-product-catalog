@@ -5,7 +5,6 @@ namespace App\Controller;
 use App\Entity\Product;
 use App\Repository\ProductRepository;
 use Doctrine\ORM\EntityManagerInterface;
-use Doctrine\Persistence\ManagerRegistry;
 use FOS\ElasticaBundle\Finder\PaginatedFinderInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -67,7 +66,7 @@ class ProductController extends AbstractController
             sprintf('%s_%s', self::PRODUCT_DETAIL_CACHE_KEY, $id),
             function (ItemInterface $item) use ($id) {
                 $item->expiresAfter(self::PRODUCT_CACHE_TTL);
-                return $this->productRepository->findOneBy(['id' => $id]);
+                return $this->productRepository->findOrFail($id);
             }
         );
 
@@ -75,9 +74,6 @@ class ProductController extends AbstractController
             ->withGroups('show_product')
             ->toArray();
 
-        if (!$product) {
-            return $this->json(['error' => 'Product not found']);
-        }
         return $this->json($product, context: $context);
     }
 
@@ -101,10 +97,7 @@ class ProductController extends AbstractController
     #[Route('/{id}', name: 'edit', methods: ['PUT'])]
     public function edit(int $id, Request $request): Response
     {
-        $product = $this->productRepository->findOneBy(['id' => $id]);
-        if (!$product) {
-            return $this->json(['error' => 'Product not found']);
-        }
+        $product = $this->productRepository->findOrFail($id);
 
         $product = $this->serializer->deserialize($request->getContent(), Product::class, 'json', [
             AbstractNormalizer::ALLOW_EXTRA_ATTRIBUTES => false,
