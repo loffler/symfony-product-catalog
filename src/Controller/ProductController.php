@@ -14,21 +14,32 @@ use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Serializer\Context\Normalizer\ObjectNormalizerContextBuilder;
 use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
 use Symfony\Component\Serializer\SerializerInterface;
+use Symfony\Contracts\Cache\CacheInterface;
+use Symfony\Contracts\Cache\ItemInterface;
 
 #[Route('products', 'products_')]
 class ProductController extends AbstractController
 {
+    const PRODUCT_CACHE_TTL = 10;
+    const PRODUCT_INDEX_CACHE_KEY = 'product_index';
+    const PRODUCT_DETAIL_CACHE_KEY = 'product_detail';
+
     public function __construct(
         private PaginatedFinderInterface $finder,
         private EntityManagerInterface $entityManager,
         private ProductRepository $productRepository,
         private SerializerInterface $serializer,
+        private CacheInterface $cache,
     ) {}
 
     #[Route('', name: 'index', methods: ['GET'])]
     public function index(): Response
     {
-        $products = $this->productRepository->findAll();
+        $products = $this->cache->get(self::PRODUCT_INDEX_CACHE_KEY, function (ItemInterface $item) {
+            $item->expiresAfter(self::PRODUCT_CACHE_TTL);
+            return $this->productRepository
+                ->findAll();
+        });
 
         $context = (new ObjectNormalizerContextBuilder())
             ->withGroups('list_product')
@@ -52,7 +63,13 @@ class ProductController extends AbstractController
     #[Route('/{id}', name: 'by_id', methods: ['GET'])]
     public function getById(int $id): Response
     {
-        $product = $this->productRepository->findOneBy(['id' => $id]);
+        $product = $this->cache->get(
+            sprintf('%s_%s', self::PRODUCT_DETAIL_CACHE_KEY, $id),
+            function (ItemInterface $item) use ($id) {
+                $item->expiresAfter(self::PRODUCT_CACHE_TTL);
+                return $this->productRepository->findOneBy(['id' => $id]);
+            }
+        );
 
         $context = (new ObjectNormalizerContextBuilder())
             ->withGroups('show_product')

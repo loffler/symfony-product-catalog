@@ -38,5 +38,10 @@ services:
             - elasticsearch
         ports:
             - 5601:5601
+    cache:
+        image: redis:latest
+        ports:
+            - 6379:6379
+
 volumes:
     database_data:

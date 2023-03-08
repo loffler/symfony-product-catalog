@@ -22,7 +22,7 @@ class Product
     #[Groups(['show_product', 'list_product'])]
     private ?string $name = null;
 
-    #[ORM\ManyToOne(cascade: ['persist'], inversedBy: 'products')]
+    #[ORM\ManyToOne(cascade: ['persist'], fetch: 'EAGER', inversedBy: 'products')]
     #[ORM\JoinColumn(nullable: false)]
     #[Groups(['show_product', 'list_product'])]
     private ?ProductCategory $productCategory = null;
